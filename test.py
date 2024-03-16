@@ -70,4 +70,4 @@ if submit_button:
             st.write('Please enter a search term.')
     finally:
         # Close database connection
-        pass
+        conn.close()
