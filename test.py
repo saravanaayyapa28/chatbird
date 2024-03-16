@@ -7,8 +7,9 @@ from io import BytesIO
 def search_database(conn, search_term, columns):
     cursor = conn.cursor()
     # Construct the WHERE clause dynamically to search across multiple columns
-    where_clause = " OR ".join([f"{column} LIKE ?" for column in columns])
-    cursor.execute(f"SELECT * FROM student WHERE {where_clause}", ['%' + search_term + '%'] * len(columns))
+    where_clause = " OR ".join([f"{column} LIKE '%{search_term}%'" for column in columns])
+    cursor.execute(f"SELECT * FROM student WHERE {where_clause}")
+
     results = cursor.fetchall()
     return results
 
@@ -30,11 +31,11 @@ st.sidebar.subheader("Additional Options")
 option1 = st.sidebar.selectbox('Choose The Format ', ['Excel', 'CSV', 'PDF'])
 option2 = st.sidebar.selectbox('Select The Downloaded Option ', ['View', 'Download'])
 
-# Establish a connection to the SQLite database
-conn = st.experimental_connection('customer_db', type='sqlite')
-
 if submit_button:
     try:
+        # SQLite database connection
+        conn = sqlite3.connect('chatbird/customer.db')
+
         if search_term:
             # Specify the columns to search in
             search_columns = ["LastName", "FirstName", "ID","Age"]  # Add more columns as needed
@@ -56,11 +57,10 @@ if submit_button:
                         excel_file.seek(0)
                         st.download_button(label="Download Excel", data=excel_file, file_name='search_results.xlsx', mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
                     elif option1 == 'CSV':
-                        csv_file = BytesIO()
-                        df.to_csv(csv_file, index=False)
-                        csv_file.seek(0)
+                        csv_file = df.to_csv(index=False).encode()
                         st.download_button(label="Download CSV", data=csv_file, file_name='search_results.csv', mime='text/csv')
                     elif option1 == 'PDF':
+                        # Code to convert DataFrame to PDF
                         # Placeholder for PDF conversion code
                         st.write("PDF download option will be implemented soon.")
                 else:
@@ -68,8 +68,6 @@ if submit_button:
 
         else:
             st.write('Please enter a search term.')
-    except sqlite3.Error as e:
-        st.error(f"An error occurred: {e}")
-
-# Close database connection
-conn.close()
+    finally:
+        # Close database connection
+        conn.close()
