@@ -75,7 +75,8 @@ try:
             else:
                 st.write('Please enter a search term.')
         else:
-            st.write("Error: Database file not found.")
+            st.write("Error: Database file not found. Please ensure that the database file exists at the specified path.")
+            st.write(f"Specified path: {db_file_path}")
 
 finally:
     # Close database connection in finally block to ensure it's always executed
